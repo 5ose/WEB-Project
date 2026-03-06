@@ -1,15 +1,23 @@
-import app from "./app.js";
-import mongoose from "mongoose";
 import dotenv from "dotenv";
+import app from "./app.js";
+import connectDB from "./config/db.js";
 
 dotenv.config();
 
-mongoose.connect(process.env.MONGODB_URI)
-.then(() => console.log("MongoDB Connected"))
-.catch(err => console.error(err));
-
 const PORT = process.env.PORT || 5000;
 
+const startServer = async () => {
+  await connectDB();
+
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
+  });
+};
+
+startServer();
+
+// handle unhandled promise rejections
+process.on("unhandledRejection", (err) => {
+  console.error("UNHANDLED REJECTION:", err);
+  server.close(() => process.exit(1));
 });
