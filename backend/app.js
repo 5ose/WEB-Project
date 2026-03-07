@@ -5,6 +5,8 @@ import helmet from "helmet";
 import mongoSanitize from "express-mongo-sanitize";
 import healthRoutes from "./routes/healthRoutes.js";
 import { globalErrorHandler, notFoundHandler } from "./middleware/errorMiddleware.js";
+import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 const app = express();
 
@@ -31,6 +33,8 @@ app.use(mongoSanitize());
 
 // Routes
 app.use("/", healthRoutes);
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/users", userRoutes);
 
 // 404 + Global error handler
 app.use(notFoundHandler);
