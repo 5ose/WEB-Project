@@ -1,9 +1,8 @@
 import jwt from "jsonwebtoken";
+import User from "../models/userModel.js";
 import AppError from "../utils/appError.js";
 import catchAsync from "../utils/catchAsync.js";
 
-// TEMP: In later phases you'll fetch real user from DB.
-// For now, embed role in token payload for testing admin endpoint.
 const protect = catchAsync(async (req, res, next) => {
   let token;
 
@@ -17,8 +16,12 @@ const protect = catchAsync(async (req, res, next) => {
 
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-  // Attach to request
-  req.user = decoded; // { id, role, iat, exp }
+  const currentUser = await User.findById(decoded.id);
+  if (!currentUser) {
+    return next(new AppError("The user belonging to this token no longer exists.", 401));
+  }
+
+  req.user = currentUser;
   next();
 });
 
