@@ -1,7 +1,7 @@
 import express from "express";
 import { getMe, updateMe, getUserById } from "../controllers/userController.js";
 import { protect } from "../middleware/authMiddleware.js";
-import { validate } from "../middleware/validateMiddleware.js";
+import validate from "../middleware/validateMiddleware.js";
 import { updateMeSchema } from "../utils/validators.js";
 
 const router = express.Router();

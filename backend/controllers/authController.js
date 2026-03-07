@@ -24,3 +24,5 @@ const login = catchAsync(async (req, res) => {
     },
   });
 });
+
+export { register, login };
