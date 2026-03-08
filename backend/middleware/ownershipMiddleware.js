@@ -22,3 +22,6 @@ const checkOwnership = (getOwnerId) => {
 };
 
 export default checkOwnership;
+
+// checkOwnership((req) => req.video.owner.toString())
+// checkOwnership((req) => req.review.user.toString())

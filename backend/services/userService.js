@@ -1,21 +1,25 @@
 import User from "../models/userModel.js";
+import AppError from "../utils/appError.js";
 
-const getCurrentUser = async (userId) => {
+export const getCurrentUser = async (userId) => {
   return await User.findById(userId);
 };
 
-const updateCurrentUser = async (userId, updates) => {
+export const updateCurrentUser = async (userId, updates) => {
   const allowedFields = ["username", "bio", "avatarKey"];
+  const forbiddenFields = ["password", "email", "role"];
+
+  for (const field of forbiddenFields) {
+    if (updates[field] !== undefined) {
+      throw new AppError(`You cannot update ${field} here`, 400);
+    }
+  }
 
   const filteredUpdates = {};
   for (const key of allowedFields) {
     if (updates[key] !== undefined) {
       filteredUpdates[key] = updates[key];
     }
-  }
-
-  if (filteredUpdates.email || filteredUpdates.password || filteredUpdates.role) {
-    throw new Error("You cannot update email, password, or role here");
   }
 
   if (filteredUpdates.username) {
@@ -25,7 +29,7 @@ const updateCurrentUser = async (userId, updates) => {
     });
 
     if (existingUsername) {
-      throw new Error("Username already in use");
+      throw new AppError("Username already in use", 400);
     }
   }
 
@@ -35,8 +39,6 @@ const updateCurrentUser = async (userId, updates) => {
   });
 };
 
-const getPublicUserById = async (userId) => {
+export const getPublicUserById = async (userId) => {
   return await User.findById(userId).select("username bio avatarKey role createdAt");
 };
-
-export { getCurrentUser, updateCurrentUser, getPublicUserById };
