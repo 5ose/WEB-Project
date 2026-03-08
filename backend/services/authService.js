@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/userModel.js";
+import { act } from "react";
 
 const signToken = (user) => {
   return jwt.sign(
@@ -40,6 +41,8 @@ const registerUser = async ({ username, email, password }) => {
       role: user.role,
       bio: user.bio,
       avatarKey: user.avatarKey,
+      active: user.active,
+      accountStatus: user.accountStatus,
     },
   };
 };
