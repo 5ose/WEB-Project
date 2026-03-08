@@ -1,7 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/userModel.js";
-import { act } from "react";
 
 const signToken = (user) => {
   return jwt.sign(
