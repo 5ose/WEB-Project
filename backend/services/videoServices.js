@@ -13,6 +13,15 @@ export const getVideoByID = async (videoID) => {
   return await Video.findById(videoID);
 };
 
+export const updateVideo = async (videoId, data) => {
+  const video = await Video.findByIdAndUpdate(
+    videoId,
+    { $set: data },
+    { new: true, runValidators: true }
+  );
+  return video;
+};
+
 export const createVideo = async({ title, description, videoURL, duration, ownerId })=>{
 
     const video = await Video.create({

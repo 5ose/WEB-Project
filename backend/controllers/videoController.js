@@ -1,8 +1,11 @@
 import {
   createVideo as createVideoService,
   listVideos as listVideosService,
+  updateVideo as updateVideoService,
+  getVideoByID,
 } from "../services/videoServices.js";
 import catchAsync from "../utils/catchAsync.js";
+import AppError from "../utils/appError.js";
 
 const listVideos = catchAsync(async (req, res) => {
   const limit = Math.min(parseInt(req.query.limit, 10) || 20, 50);
@@ -40,4 +43,21 @@ const createVideo = catchAsync(async (req, res) => {
   });
 });
 
-export { listVideos, createVideo };
+const updateVideo = catchAsync(async (req, res) => {
+  const video = await updateVideoService(req.video._id, req.body);
+  res.status(200).json({
+    status: "success",
+    data: {
+      video,
+    },
+  });
+});
+
+const loadVideo = catchAsync(async (req, res, next) => {
+  const video = await getVideoByID(req.params.id);
+  if (!video) return next(new AppError("Video not found", 404));
+  req.video = video;
+  next();
+});
+
+export { listVideos, createVideo, updateVideo, loadVideo };

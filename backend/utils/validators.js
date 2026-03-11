@@ -24,6 +24,12 @@ const createVideoSchema = z.object({
   videoURL: z.string().min(1, "Video URL is required"),
   duration: z.number().min(1, "Video duration must be at least 1 second")
     .max(300, "Video duration must not exceed 300 seconds"),
-})
+});
 
-export { registerSchema, loginSchema, updateMeSchema, createVideoSchema};
+const updateVideoSchema = z.object({
+  title: z.string().min(3, "Title must be at least 3 characters").max(100, "Title must not exceed 100 characters").optional(),
+  description: z.string().max(1000, "Description must not exceed 1000 characters").optional(),
+  status: z.enum(["public", "private", "flagged"]).optional(),
+});
+
+export { registerSchema, loginSchema, updateMeSchema, createVideoSchema, updateVideoSchema };
