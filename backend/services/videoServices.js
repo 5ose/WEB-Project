@@ -22,6 +22,11 @@ export const updateVideo = async (videoId, data) => {
   return video;
 };
 
+export const deleteVideo = async (videoId) => {
+  const video = await Video.findByIdAndDelete(videoId);
+  return video;
+};
+
 export const createVideo = async({ title, description, videoURL, duration, ownerId })=>{
 
     const video = await Video.create({

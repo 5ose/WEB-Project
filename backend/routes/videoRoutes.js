@@ -1,5 +1,5 @@
 import express from "express";
-import { listVideos, createVideo, updateVideo, loadVideo } from "../controllers/videoController.js";
+import { listVideos, createVideo, updateVideo, deleteVideo, loadVideo } from "../controllers/videoController.js";
 import { createVideoSchema, updateVideoSchema } from "../utils/validators.js";
 import validate from "../middleware/validateMiddleware.js";
 import { protect } from "../middleware/authMiddleware.js";
@@ -16,6 +16,13 @@ router.patch(
   checkOwnership((req) => req.video.owner),
   validate(updateVideoSchema),
   updateVideo
+);
+router.delete(
+  "/:id",
+  protect,
+  loadVideo,
+  checkOwnership((req) => req.video.owner),
+  deleteVideo
 );
 
 export default router;

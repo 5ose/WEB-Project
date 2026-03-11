@@ -2,6 +2,7 @@ import {
   createVideo as createVideoService,
   listVideos as listVideosService,
   updateVideo as updateVideoService,
+  deleteVideo as deleteVideoService,
   getVideoByID,
 } from "../services/videoServices.js";
 import catchAsync from "../utils/catchAsync.js";
@@ -60,4 +61,9 @@ const loadVideo = catchAsync(async (req, res, next) => {
   next();
 });
 
-export { listVideos, createVideo, updateVideo, loadVideo };
+const deleteVideo = catchAsync(async (req, res) => {
+  await deleteVideoService(req.video._id);
+  res.status(204).send();
+});
+
+export { listVideos, createVideo, updateVideo, deleteVideo, loadVideo };
