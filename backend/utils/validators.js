@@ -32,4 +32,9 @@ const updateVideoSchema = z.object({
   status: z.enum(["public", "private", "flagged"]).optional(),
 });
 
-export { registerSchema, loginSchema, updateMeSchema, createVideoSchema, updateVideoSchema };
+const createReviewSchema = z.object({
+  rating: z.number().int().min(1, "Rating must be at least 1").max(5, "Rating must not exceed 5"),
+  comment: z.string().max(500, "Comment must not exceed 500 characters").optional().default(""),
+});
+
+export { registerSchema, loginSchema, updateMeSchema, createVideoSchema, updateVideoSchema, createReviewSchema };
