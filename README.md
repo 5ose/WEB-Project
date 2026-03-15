@@ -10,64 +10,87 @@ The system allows users to **upload short videos, interact with content, follow 
 
 ```
 WEB-Project
+├─ .gitignore
+├─ docker-compose.yml
+├─ README.md
 ├─ backend
+│  ├─ .env
 │  ├─ app.js
+│  ├─ package-lock.json
+│  ├─ package.json
+│  ├─ server.js
+│  ├─ bruno
+│  │  ├─ bruno.json
+│  │  ├─ collection.bru
+│  │  ├─ getfollwoing.bru
+│  │  ├─ Notfication Prefences in main and app.bru
+│  │  ├─ TestingIfalreadfollow.bru
+│  │  ├─ Unfollow.bru
+│  │  ├─ user can not follow himself.bru
+│  │  ├─ UserAsignin.bru
+│  │  ├─ environments
+│  │  │  └─ Dev.bru
+│  │  └─ Testing
+│  │     ├─ folder.bru
+│  │     └─ Sign up.bru
 │  ├─ config
 │  │  └─ db.js
 │  ├─ controllers
 │  │  ├─ authController.js
 │  │  ├─ healthController.js
-│  │  └─ userController.js
+│  │  ├─ reviewController.js
+│  │  ├─ userController.js
+│  │  └─ videoController.js
 │  ├─ middleware
 │  │  ├─ authMiddleware.js
 │  │  ├─ errorMiddleware.js
 │  │  ├─ ownershipMiddleware.js
 │  │  └─ validateMiddleware.js
 │  ├─ models
+│  │  ├─ emailQueueModel.js
 │  │  ├─ followModel.js
+│  │  ├─ notificationModel.js
 │  │  ├─ reviewModel.js
 │  │  ├─ userModel.js
 │  │  └─ videoModel.js
-│  ├─ package-lock.json
-│  ├─ package.json
+│  ├─ routes
+│  │  ├─ authRoutes.js
+│  │  ├─ healthRoutes.js
+│  │  ├─ userRoutes.js
+│  │  └─ videoRoutes.js
 │  ├─ scripts
 │  │  └─ testModels.js
-│  ├─ server.js
 │  ├─ services
 │  │  ├─ authService.js
 │  │  ├─ healthService.js
-│  │  └─ userService.js
-│  ├─ tests
-│  ├─ uploads
+│  │  ├─ notificationService.js
+│  │  ├─ reviewService.js
+│  │  ├─ userService.js
+│  │  └─ videoServices.js
 │  └─ utils
 │     ├─ appError.js
 │     ├─ catchAsync.js
 │     └─ validators.js
-├─ docker-compose.yml
-├─ docs
-├─ frontend
-│  ├─ app
-│  │  ├─ favicon.ico
-│  │  ├─ globals.css
-│  │  └─ page.js
-│  ├─ components
-│  ├─ eslint.config.mjs
-│  ├─ hooks
-│  ├─ jsconfig.json
-│  ├─ next.config.mjs
-│  ├─ package-lock.json
-│  ├─ package.json
-│  ├─ postcss.config.mjs
-│  ├─ public
-│  │  ├─ file.svg
-│  │  ├─ globe.svg
-│  │  ├─ next.svg
-│  │  ├─ vercel.svg
-│  │  └─ window.svg
-│  ├─ README.md
-│  └─ services
-└─ README.md
-
+└─ frontend
+   ├─ .gitignore
+   ├─ eslint.config.mjs
+   ├─ jsconfig.json
+   ├─ next.config.mjs
+   ├─ package-lock.json
+   ├─ package.json
+   ├─ postcss.config.mjs
+   ├─ README.md
+   ├─ app
+   │  ├─ favicon.ico
+   │  ├─ globals.css
+   │  ├─ layout.js
+   │  └─ page.js
+   └─ public
+      ├─ file.svg
+      ├─ globe.svg
+      ├─ next.svg
+      ├─ vercel.svg
+      └─ window.svg
 ```
 
 ---
