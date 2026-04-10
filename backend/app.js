@@ -2,6 +2,7 @@ import express from "express";
 import morgan from "morgan";
 import cors from "cors";
 import helmet from "helmet";
+import cookieParser from "cookie-parser";
 import mongoSanitize from "express-mongo-sanitize";
 import swaggerUi from "swagger-ui-express";
 import healthRoutes from "./routes/healthRoutes.js";
@@ -32,6 +33,7 @@ app.use(
 );
 app.use(cors());
 app.use(express.json({ limit: "10kb" }));
+app.use(cookieParser());
 
 // Logging
 app.use(morgan("dev"));

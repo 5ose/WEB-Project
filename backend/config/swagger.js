@@ -20,12 +20,18 @@ const options = {
     ],
     components: {
       securitySchemes: {
+        CookieAuth: {
+          type: "apiKey",
+          in: "cookie",
+          name: "token",
+          description: "JWT token stored in HTTP-only cookie. Set automatically after login.",
+        },
         BearerAuth: {
           type: "http",
           scheme: "bearer",
           bearerFormat: "JWT",
           description:
-            'Enter your JWT token. Obtain it from **POST /auth/register** or **POST /auth/login**.',
+            'Alternative: Enter your JWT token manually. For normal usage, use CookieAuth.',
         },
       },
       schemas: {
@@ -73,11 +79,6 @@ const options = {
           type: "object",
           properties: {
             status: { type: "string", example: "success" },
-            token: {
-              type: "string",
-              description: "JWT bearer token",
-              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-            },
             data: {
               type: "object",
               properties: {
@@ -85,6 +86,7 @@ const options = {
               },
             },
           },
+          description: "Token is automatically set as an HTTP-only cookie. Not visible in response body.",
         },
 
         // ─── User ─────────────────────────────────────────────────────────────
@@ -263,7 +265,7 @@ const options = {
       // ─── Reusable responses ─────────────────────────────────────────────────
       responses: {
         Unauthorized: {
-          description: "Unauthorized — missing or invalid JWT token",
+          description: "Unauthorized — missing or invalid JWT token (in cookie or Bearer header)",
           content: {
             "application/json": {
               schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -333,9 +335,10 @@ const options = {
       },
     },
 
-    // Global security (overridden per-route where public)
+    security: [{ CookieAuth: [] }],
+
     tags: [
-      { name: "Auth",   description: "Register and log in" },
+      { name: "Auth",   description: "Register and log in — token is set as HTTP-only cookie" },
       { name: "Users",  description: "User profile and social features" },
       { name: "Videos", description: "Video CRUD and reviews" },
       { name: "Admin",  description: "Admin-only management endpoints (requires admin role)" },

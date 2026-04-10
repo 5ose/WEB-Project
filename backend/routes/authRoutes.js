@@ -11,7 +11,7 @@ const router = express.Router();
  *   post:
  *     summary: Register a new user
  *     tags: [Auth]
- *     description: Creates a new user account and returns a JWT bearer token.
+ *     description: Creates a new user account. The JWT token is automatically set as an HTTP-only cookie.
  *     requestBody:
  *       required: true
  *       content:
@@ -20,11 +20,20 @@ const router = express.Router();
  *             $ref: '#/components/schemas/RegisterRequest'
  *     responses:
  *       201:
- *         description: User registered successfully
+ *         description: User registered successfully - token set in cookie
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/AuthResponse'
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       $ref: '#/components/schemas/User'
  *       400:
  *         $ref: '#/components/responses/ValidationError'
  *       409:
@@ -45,7 +54,7 @@ router.post("/register", validate(registerSchema), register);
  *   post:
  *     summary: Log in with email and password
  *     tags: [Auth]
- *     description: Authenticates an existing user and returns a JWT bearer token.
+ *     description: Authenticates an existing user. The JWT token is automatically set as an HTTP-only cookie.
  *     requestBody:
  *       required: true
  *       content:
@@ -54,11 +63,20 @@ router.post("/register", validate(registerSchema), register);
  *             $ref: '#/components/schemas/LoginRequest'
  *     responses:
  *       200:
- *         description: Login successful
+ *         description: Login successful - token set in cookie
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/AuthResponse'
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       $ref: '#/components/schemas/User'
  *       400:
  *         $ref: '#/components/responses/ValidationError'
  *       401:
