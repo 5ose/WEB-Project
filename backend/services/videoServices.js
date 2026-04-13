@@ -1,9 +1,91 @@
 import Video from "../models/videoModel.js";
+import Follow from "../models/followModel.js";
+import AppError from "../utils/appError.js";
+import {
+  buildOwnerLookupStages,
+  buildReviewMetricsLookupStages,
+  buildTrendingScoringStages,
+} from "./videoAggregationService.js";
 
-export const listVideos = async ({ limit = 20, skip = 0 }) => {
+export const listVideos = async ({ limit = 20, skip = 0, feed = "all", currentUserId = null }) => {
   const safeLimit = Math.min(Math.max(limit, 1), 50);
   const safeSkip = Math.max(skip, 0);
+  const normalizedFeed = ["following", "trending"].includes(feed) ? feed : "all";
   const filter = { status: "public" };
+
+  if (normalizedFeed === "trending") {
+    const [aggregationResult] = await Video.aggregate([
+      { $match: filter },
+      ...buildReviewMetricsLookupStages(),
+      ...buildTrendingScoringStages(),
+      {
+        $facet: {
+          videos: [
+            { $skip: safeSkip },
+            { $limit: safeLimit },
+            ...buildOwnerLookupStages(),
+            {
+              $project: {
+                _id: 1,
+                title: 1,
+                description: 1,
+                videoURL: 1,
+                duration: 1,
+                viewscount: 1,
+                status: 1,
+                createdAt: 1,
+                updatedAt: 1,
+                avgRating: 1,
+                reviewCount: 1,
+                recentReviewCount: 1,
+                recentEngagementScore: { $round: ["$recentEngagementScore", 2] },
+                trendingScore: { $round: ["$trendingScore", 2] },
+                owner: {
+                  _id: "$owner._id",
+                  username: "$owner.username",
+                  avatarKey: "$owner.avatarKey",
+                },
+              },
+            },
+          ],
+          totalCount: [{ $count: "count" }],
+        },
+      },
+    ]);
+
+    const videos = aggregationResult?.videos ?? [];
+    const total = aggregationResult?.totalCount?.[0]?.count ?? 0;
+
+    return {
+      videos,
+      total,
+      limit: safeLimit,
+      skip: safeSkip,
+      hasMore: safeSkip + videos.length < total,
+      feed: normalizedFeed,
+    };
+  }
+
+  if (normalizedFeed === "following") {
+    if (!currentUserId) {
+      throw new AppError("You must be logged in to load the following feed", 401);
+    }
+
+    const followedUserIds = await Follow.find({ follower: currentUserId }).distinct("following");
+
+    if (!followedUserIds.length) {
+      return {
+        videos: [],
+        total: 0,
+        limit: safeLimit,
+        skip: safeSkip,
+        hasMore: false,
+        feed: normalizedFeed,
+      };
+    }
+
+    filter.owner = { $in: followedUserIds };
+  }
 
   const [videos, total] = await Promise.all([
     Video.find(filter)
@@ -20,6 +102,7 @@ export const listVideos = async ({ limit = 20, skip = 0 }) => {
     limit: safeLimit,
     skip: safeSkip,
     hasMore: safeSkip + videos.length < total,
+    feed: normalizedFeed,
   };
 };
 

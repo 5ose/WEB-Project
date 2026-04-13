@@ -5,9 +5,14 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/v1/videos?limit=12&skip=0
+  url: {{baseUrl}}/api/v1/videos?limit=3&skip=3
   body: json
   auth: none
+}
+
+params:query {
+  limit: 3
+  skip: 3
 }
 
 settings {
