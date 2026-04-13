@@ -15,7 +15,7 @@ const listVideos = catchAsync(async (req, res) => {
   const parsedLimit = Number.parseInt(req.query.limit, 10);
   const parsedSkip = Number.parseInt(req.query.skip, 10);
   const parsedPage = Number.parseInt(req.query.page, 10);
-  const feed = req.query.feed === "following" ? "following" : "all";
+  const feed = ["following", "trending"].includes(req.query.feed) ? req.query.feed : "all";
 
   const limit = Number.isNaN(parsedLimit) ? 20 : Math.min(Math.max(parsedLimit, 1), 50);
   const page = Number.isNaN(parsedPage) ? 1 : Math.max(parsedPage, 1);

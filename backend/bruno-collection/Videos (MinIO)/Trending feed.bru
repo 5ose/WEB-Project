@@ -1,0 +1,22 @@
+meta {
+  name: Trending feed
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/v1/videos?limit=8&skip=0&feed=trending
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 8
+  skip: 0
+  feed: trending
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

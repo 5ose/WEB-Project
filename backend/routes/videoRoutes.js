@@ -23,8 +23,8 @@ const router = express.Router();
  *         name: feed
  *         schema:
  *           type: string
- *           enum: [all, following]
- *         description: Feed mode. Use `following` to return videos only from accounts the authenticated user follows.
+ *           enum: [all, following, trending]
+ *         description: Feed mode. Use `following` to return videos only from accounts the authenticated user follows, or `trending` to rank by recent engagement and average review score.
  *     responses:
  *       200:
  *         description: A paginated list of videos

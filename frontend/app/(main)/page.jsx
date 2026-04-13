@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuthContext } from "../../context/AuthContext";
-import { CalendarDays, Clock, Eye, Play, RefreshCw, UserRound, Users } from "lucide-react";
+import { CalendarDays, Clock, Eye, Flame, Play, RefreshCw, Star, UserRound, Users } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
 import { getVideos } from "../../services/videoService";
@@ -11,6 +11,7 @@ const PAGE_SIZE = 8;
 const FEED_OPTIONS = [
   { id: "all", label: "For You" },
   { id: "following", label: "Following" },
+  { id: "trending", label: "Trending" },
 ];
 
 const formatDuration = (totalSeconds = 0) => {
@@ -147,7 +148,7 @@ export default function HomePage() {
           {user ? `Welcome back, ${user.username}!` : "Explore the latest videos"}
         </h1>
         <p className="text-gray-400 mt-2">
-          Switch between your full discovery feed and a following-only feed while infinite scroll keeps loading the next page.
+          Switch between discovery, following, and trending feeds while infinite scroll keeps loading the next page.
         </p>
         <p className="text-sm text-gray-500 mt-3">
           {initialLoading ? "Loading feed..." : `${videos.length} of ${totalVideos} videos loaded`}
@@ -187,6 +188,13 @@ export default function HomePage() {
             Videos from accounts you follow
           </span>
         ) : null}
+
+        {activeFeed === "trending" ? (
+          <span className="inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-500/10 px-4 py-2 text-sm text-orange-100">
+            <Flame size={16} />
+            Ranked by recent engagement and average review score
+          </span>
+        ) : null}
       </div>
 
       {feedError && !videos.length ? (
@@ -214,11 +222,17 @@ export default function HomePage() {
       {!initialLoading && !videos.length && !feedError ? (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-10 text-center">
           <p className="text-lg font-semibold text-white">
-            {activeFeed === "following" ? "No videos from followed creators yet." : "No public videos yet."}
+            {activeFeed === "following"
+              ? "No videos from followed creators yet."
+              : activeFeed === "trending"
+                ? "No trending videos yet."
+                : "No public videos yet."}
           </p>
           <p className="mt-2 text-sm text-gray-400">
             {activeFeed === "following"
               ? "Follow more creators or wait for someone you follow to publish a video."
+              : activeFeed === "trending"
+                ? "Once videos start collecting reviews and engagement, they will appear here."
               : "New uploads will appear here automatically once creators publish them."}
           </p>
         </div>
@@ -251,6 +265,19 @@ export default function HomePage() {
               <p className="text-sm text-gray-300 min-h-12 mb-4">
                 {video.description || "No description provided for this upload yet."}
               </p>
+
+              {activeFeed === "trending" ? (
+                <div className="mb-4 flex flex-wrap gap-2 text-xs">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-orange-400/20 bg-orange-500/10 px-3 py-1 text-orange-100">
+                    <Flame size={12} />
+                    {(video.recentReviewCount ?? 0)} recent reviews
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full border border-yellow-400/20 bg-yellow-500/10 px-3 py-1 text-yellow-100">
+                    <Star size={12} />
+                    {Number(video.avgRating ?? 0).toFixed(1)} avg rating
+                  </span>
+                </div>
+              ) : null}
 
               <div className="grid grid-cols-2 gap-3 text-sm text-gray-400">
                 <div className="rounded-xl bg-black/30 px-3 py-2">

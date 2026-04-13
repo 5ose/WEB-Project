@@ -2,6 +2,10 @@ import User from "../models/userModel.js";
 import Video from "../models/videoModel.js";
 import Review from "../models/reviewModel.js";
 import AppError from "../utils/appError.js";
+import {
+  buildOwnerLookupStages,
+  buildVideoReviewSummaryPipeline,
+} from "./videoAggregationService.js";
 
 // GET /api/v1/admin/stats
 export const getAdminStats = async () => {
@@ -156,13 +160,7 @@ export const getModerationContent = async ({ ratingThreshold = 2.0 } = {}) => {
     // Aggregates from reviews → joins video + owner details.
     // Excludes already-flagged videos to avoid duplicates.
     Review.aggregate([
-      {
-        $group: {
-          _id: "$video",
-          avgRating:   { $avg: "$rating" },
-          reviewCount: { $sum: 1 },
-        },
-      },
+      ...buildVideoReviewSummaryPipeline(),
       {
         $match: {
           avgRating:   { $lt: threshold },
@@ -180,15 +178,18 @@ export const getModerationContent = async ({ ratingThreshold = 2.0 } = {}) => {
       },
       { $unwind: "$video" },
       { $match: { "video.status": { $ne: "flagged" } } }, // already in flaggedVideos
-      {
-        $lookup: {
-          from: "users",
-          localField: "video.owner",
-          foreignField: "_id",
-          as: "owner",
-        },
-      },
-      { $unwind: "$owner" },
+      ...buildOwnerLookupStages().map((stage) => {
+        if (stage.$lookup) {
+          return {
+            $lookup: {
+              ...stage.$lookup,
+              localField: "video.owner",
+            },
+          };
+        }
+
+        return stage;
+      }),
       {
         $project: {
           _id: 0,
