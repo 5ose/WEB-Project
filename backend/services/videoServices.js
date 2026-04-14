@@ -1,5 +1,6 @@
 import Video from "../models/videoModel.js";
 import Follow from "../models/followModel.js";
+import mongoose from "mongoose";
 import AppError from "../utils/appError.js";
 import {
   buildOwnerLookupStages,
@@ -7,11 +8,24 @@ import {
   buildTrendingScoringStages,
 } from "./videoAggregationService.js";
 
-export const listVideos = async ({ limit = 20, skip = 0, feed = "all", currentUserId = null }) => {
+export const listVideos = async ({
+  limit = 20,
+  skip = 0,
+  feed = "all",
+  currentUserId = null,
+  ownerId = null,
+}) => {
   const safeLimit = Math.min(Math.max(limit, 1), 50);
   const safeSkip = Math.max(skip, 0);
   const normalizedFeed = ["following", "trending"].includes(feed) ? feed : "all";
   const filter = { status: "public" };
+
+  if (ownerId) {
+    if (!mongoose.Types.ObjectId.isValid(ownerId)) {
+      throw new AppError("Invalid owner id", 400);
+    }
+    filter.owner = ownerId;
+  }
 
   if (normalizedFeed === "trending") {
     const [aggregationResult] = await Video.aggregate([

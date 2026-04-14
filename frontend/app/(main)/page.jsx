@@ -5,6 +5,7 @@ import { useAuthContext } from "../../context/AuthContext";
 import { CalendarDays, Clock, Eye, Flame, Play, RefreshCw, Star, UserRound, Users } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import VideoPlayer from "../../components/ui/VideoPlayer";
 import { getVideos } from "../../services/videoService";
 
 const PAGE_SIZE = 8;
@@ -244,12 +245,21 @@ export default function HomePage() {
             key={video._id}
             className="group relative bg-white/5 rounded-2xl overflow-hidden border border-white/10 hover:border-purple-500/50 transition-all duration-300 hover:scale-[1.02]"
           >
-            <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 relative flex items-center justify-center">
-              <Play className="text-white/50 group-hover:text-white/80 transition-colors" size={48} />
-              <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 text-xs text-white flex items-center gap-1">
-                <Clock size={12} />
-                {formatDuration(video.duration)}
-              </div>
+            <div className="relative">
+              {video.playbackUrl ? (
+                <VideoPlayer src={video.playbackUrl} />
+              ) : (
+                <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 relative flex items-center justify-center">
+                  <Play className="text-white/50 group-hover:text-white/80 transition-colors" size={48} />
+                  <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 text-xs text-white flex items-center gap-1">
+                    <Clock size={12} />
+                    {formatDuration(video.duration)}
+                  </div>
+                  <div className="absolute inset-x-0 bottom-8 text-center text-xs text-gray-300">
+                    Video source unavailable
+                  </div>
+                </div>
+              )}
               <div className="absolute top-2 left-2 rounded-full border border-white/10 bg-black/50 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white/80">
                 Public
               </div>

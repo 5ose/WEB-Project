@@ -3,14 +3,25 @@ import ffmpeg from "fluent-ffmpeg";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
 import fs from "fs";
+import path from "path";
 import s3, { BUCKET_NAME } from "../config/minio.js";
 import AppError from "../utils/appError.js";
 
 // 1. Multer
 // diskStorage saves the file temporarily on disk so ffmpeg can probe it
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "/tmp"),
-  filename:    (req, file, cb) => cb(null, `${randomUUID()}-${file.originalname}`),
+  destination: (req, file, cb) => {
+    const tmpDir = path.resolve(process.cwd(), ".tmp-uploads");
+    try {
+      if (!fs.existsSync(tmpDir)) {
+        fs.mkdirSync(tmpDir, { recursive: true });
+      }
+      cb(null, tmpDir);
+    } catch (err) {
+      cb(new AppError("Temporary upload directory is not available", 500));
+    }
+  },
+  filename: (req, file, cb) => cb(null, `${randomUUID()}.mp4`),
 });
 
 const fileFilter = (req, file, cb) => {
@@ -41,6 +52,14 @@ const checkDuration = (filePath) => {
   });
 };
 
+const getFallbackDurationFromRequest = (req) => {
+  const parsed = Number.parseInt(req.body?.duration, 10);
+  if (Number.isNaN(parsed) || parsed <= 0) {
+    return null;
+  }
+  return parsed;
+};
+
 // 3. S3 upload to MinIO 
 const uploadToMinio = async (filePath, mimeType) => {
   const objectKey = `${randomUUID()}.mp4`;  // the unique key stored in MongoDB
@@ -69,8 +88,19 @@ export const handleVideoUpload = [
     const tempPath = req.file.path;
 
     try {
-      // Check duration
-      const duration = await checkDuration(tempPath);
+      // Prefer ffprobe, but fallback to client-provided duration if ffprobe is unavailable.
+      let duration = null;
+      try {
+        duration = await checkDuration(tempPath);
+      } catch (probeError) {
+        duration = getFallbackDurationFromRequest(req);
+        if (!duration) {
+          throw new AppError(
+            "Could not read video metadata. Install FFmpeg/ffprobe or retry upload.",
+            400
+          );
+        }
+      }
       if (duration > 300) {
         fs.unlinkSync(tempPath); // delete temp file immediately
         return next(new AppError("Video exceeds the 5-minute limit", 400));

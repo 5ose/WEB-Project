@@ -1,31 +1,85 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Upload, X, FileVideo } from "lucide-react";
+import { uploadVideo } from "../../../services/videoService";
 
 export default function UploadPage() {
+  const router = useRouter();
   const [file, setFile] = useState(null);
+  const [videoDuration, setVideoDuration] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const readVideoDuration = (selectedFile) =>
+    new Promise((resolve) => {
+      const probeVideo = document.createElement("video");
+      const objectUrl = URL.createObjectURL(selectedFile);
+      probeVideo.preload = "metadata";
+      probeVideo.src = objectUrl;
+
+      const cleanup = () => {
+        URL.revokeObjectURL(objectUrl);
+        probeVideo.removeAttribute("src");
+      };
+
+      probeVideo.onloadedmetadata = () => {
+        const durationSeconds = Number(probeVideo.duration);
+        cleanup();
+        resolve(Number.isFinite(durationSeconds) && durationSeconds > 0 ? Math.round(durationSeconds) : null);
+      };
+
+      probeVideo.onerror = () => {
+        cleanup();
+        resolve(null);
+      };
+    });
 
   const handleFileChange = (e) => {
     const selected = e.target.files[0];
     if (selected && selected.type === "video/mp4") {
+      readVideoDuration(selected).then((duration) => {
+        setVideoDuration(duration);
+      });
       setFile(selected);
     } else {
       alert("Please select an MP4 video file");
+      setVideoDuration(null);
     }
   };
 
   const handleUpload = async () => {
     if (!file || !title) return;
+    setError("");
+    setSuccess("");
     setUploading(true);
-    // Your upload logic here
-    setTimeout(() => {
+
+    try {
+      await uploadVideo({
+        title: title.trim(),
+        description: description.trim(),
+        file,
+        duration: videoDuration,
+      });
+
+      setSuccess("Upload complete!");
+      setFile(null);
+      setVideoDuration(null);
+      setTitle("");
+      setDescription("");
+
+      setTimeout(() => {
+        router.push("/");
+      }, 700);
+    } catch (err) {
+      setError(err.message || "Upload failed");
+    } finally {
       setUploading(false);
-      alert("Upload complete!");
-    }, 2000);
+    }
   };
 
   return (
@@ -33,6 +87,18 @@ export default function UploadPage() {
       <h1 className="text-3xl font-bold text-white mb-8">Upload Video</h1>
       
       <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+        {error ? (
+          <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
+            {error}
+          </div>
+        ) : null}
+
+        {success ? (
+          <div className="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">
+            {success}
+          </div>
+        ) : null}
+
         {/* Title Input */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
@@ -70,10 +136,18 @@ export default function UploadPage() {
                   <div className="text-left">
                     <p className="text-white text-sm">{file.name}</p>
                     <p className="text-gray-400 text-xs">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    {videoDuration ? (
+                      <p className="text-gray-400 text-xs">
+                        Duration: {Math.floor(videoDuration / 60)}:{String(videoDuration % 60).padStart(2, "0")}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
                 <button
-                  onClick={() => setFile(null)}
+                  onClick={() => {
+                    setFile(null);
+                    setVideoDuration(null);
+                  }}
                   className="p-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30"
                 >
                   <X size={18} />

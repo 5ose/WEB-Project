@@ -11,11 +11,35 @@ import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import s3, { BUCKET_NAME } from "../config/minio.js";
 
+const withPlaybackUrls = async (videos = []) => {
+  const enriched = await Promise.all(
+    videos.map(async (video) => {
+      try {
+        const command = new GetObjectCommand({
+          Bucket: BUCKET_NAME,
+          Key: video.videoURL,
+        });
+        const playbackUrl = await getSignedUrl(s3, command, {
+          expiresIn: 60 * 15,
+        });
+        const plainVideo = video?.toObject ? video.toObject() : { ...video };
+        return { ...plainVideo, playbackUrl };
+      } catch (err) {
+        const plainVideo = video?.toObject ? video.toObject() : { ...video };
+        return { ...plainVideo, playbackUrl: null };
+      }
+    })
+  );
+
+  return enriched;
+};
+
 const listVideos = catchAsync(async (req, res) => {
   const parsedLimit = Number.parseInt(req.query.limit, 10);
   const parsedSkip = Number.parseInt(req.query.skip, 10);
   const parsedPage = Number.parseInt(req.query.page, 10);
   const feed = ["following", "trending"].includes(req.query.feed) ? req.query.feed : "all";
+  const ownerId = req.query.owner ? String(req.query.owner).trim() : null;
 
   const limit = Number.isNaN(parsedLimit) ? 20 : Math.min(Math.max(parsedLimit, 1), 50);
   const page = Number.isNaN(parsedPage) ? 1 : Math.max(parsedPage, 1);
@@ -26,7 +50,10 @@ const listVideos = catchAsync(async (req, res) => {
     skip,
     feed,
     currentUserId: req.user?.id ?? null,
+    ownerId,
   });
+
+  const videosWithPlayback = await withPlaybackUrls(pagination.videos);
 
   res.status(200).json({
     status: "success",
@@ -40,7 +67,7 @@ const listVideos = catchAsync(async (req, res) => {
       feed: pagination.feed,
     },
     data: {
-      videos: pagination.videos,
+      videos: videosWithPlayback,
     },
   });
 });

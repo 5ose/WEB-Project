@@ -2,13 +2,15 @@ const validate = (schema) => (req, res, next) => {
   const result = schema.safeParse(req.body);
 
   if (!result.success) {
+    const formattedErrors = result.error.issues.map((issue) => ({
+      field: issue.path.join("."),
+      message: issue.message,
+    }));
+
     return res.status(400).json({
       status: "fail",
-      message: "Email or password is invalid.",
-      errors: result.error.issues.map((issue) => ({
-        field: issue.path.join("."),
-        message: issue.message,
-      })),
+      message: formattedErrors[0]?.message || "Validation failed",
+      errors: formattedErrors,
     });
   }
 

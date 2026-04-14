@@ -1,6 +1,7 @@
 import { AuthProvider } from "../context/AuthContext.jsx";
 import { AppProvider } from "../context/AppContext.jsx";
 import "./globals.css";
+import "@flaticon/flaticon-uicons/css/all/all.css";
 
 export const metadata = {
   title: "ClipSphere",
