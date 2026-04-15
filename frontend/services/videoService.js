@@ -58,3 +58,40 @@ export const uploadVideo = async ({ title, description = "", file, duration = nu
 
   return payload;
 };
+
+export const submitVideoReview = async (videoId, { rating, comment = "" }) => {
+  const res = await fetch(`${API}/videos/${videoId}/reviews`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ rating, comment }),
+  });
+
+  const payload = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    const err = new Error(payload?.message || "Unable to submit review");
+    err.status = res.status;
+    throw err;
+  }
+
+  return payload?.data?.review ?? null;
+};
+
+export const getVideoDetails = async (videoId) => {
+  const res = await fetch(`${API}/videos/${videoId}`, {
+    credentials: "include",
+    cache: "no-store",
+  });
+
+  const payload = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    throw new Error(payload?.message || "Unable to load video details");
+  }
+
+  return {
+    video: payload?.data?.video ?? null,
+    reviews: payload?.data?.reviews ?? [],
+  };
+};

@@ -29,3 +29,10 @@ export const createReview = async ({ videoId, userId, rating, comment }) => {
 
   return review;
 };
+
+export const listReviewsByVideo = async (videoId) => {
+  return Review.find({ video: videoId })
+    .sort({ createdAt: -1 })
+    .populate("user", "username avatarKey")
+    .lean();
+};

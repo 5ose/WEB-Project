@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useAuthContext } from "../../context/AuthContext";
 import { CalendarDays, Clock, Eye, Flame, Play, RefreshCw, Star, UserRound, Users } from "lucide-react";
 import { useApp } from "../../context/AppContext";
@@ -265,7 +266,10 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="p-4">
+            <Link
+              href={`/video/${video._id}`}
+              className="block p-4 transition-colors hover:bg-white/[0.03]"
+            >
               <h3 className="text-white font-semibold text-lg mb-1">{video.title}</h3>
               <p className="text-gray-400 text-sm mb-3 flex items-center gap-2">
                 <UserRound size={14} />
@@ -303,7 +307,7 @@ export default function HomePage() {
                   </span>
                 </div>
               </div>
-            </div>
+            </Link>
           </div>
         ))}
       </div>

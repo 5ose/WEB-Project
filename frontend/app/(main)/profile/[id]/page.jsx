@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useAuthContext } from "../../../../context/AuthContext";
 import { useEffect, useMemo, useState } from "react";
@@ -124,8 +125,13 @@ export default function UserProfilePage() {
                   key={video._id}
                   className="overflow-hidden rounded-2xl border border-white/10 bg-white/5"
                 >
-                  <VideoPlayer src={video.playbackUrl || video.videoURL} />
-                  <div className="space-y-3 p-4">
+                  <div className="flex flex-col">
+                    <VideoPlayer src={video.playbackUrl || video.videoURL} />
+                  </div>
+                  <Link
+                    href={`/video/${video._id}`}
+                    className="block space-y-3 p-4 transition-colors hover:bg-white/[0.03]"
+                  >
                     <h3 className="text-base font-semibold text-white">
                       {video.title || "Untitled video"}
                     </h3>
@@ -146,7 +152,7 @@ export default function UserProfilePage() {
                         {new Date(video.createdAt).toLocaleDateString()}
                       </span>
                     </div>
-                  </div>
+                  </Link>
                 </article>
               ))}
             </div>

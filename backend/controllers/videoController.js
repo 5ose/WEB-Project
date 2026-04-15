@@ -5,6 +5,7 @@ import {
   deleteVideo as deleteVideoService,
   getVideoByID,
 } from "../services/videoServices.js";
+import { listReviewsByVideo } from "../services/reviewService.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
@@ -32,6 +33,14 @@ const withPlaybackUrls = async (videos = []) => {
   );
 
   return enriched;
+};
+
+const withPlaybackUrl = async (video) => {
+  if (!video) {
+    return null;
+  }
+  const [enrichedVideo] = await withPlaybackUrls([video]);
+  return enrichedVideo ?? null;
 };
 
 const listVideos = catchAsync(async (req, res) => {
@@ -112,6 +121,58 @@ const deleteVideo = catchAsync(async (req, res) => {
   res.status(204).send();
 });
 
+const getVideo = catchAsync(async (req, res, next) => {
+  const isOwner = req.user?.id && String(req.video.owner) === String(req.user.id);
+  if (req.video.status !== "public" && !isOwner) {
+    return next(new AppError("Video not found", 404));
+  }
+
+  const [videoDoc, reviews] = await Promise.all([
+    getVideoByID(req.video._id),
+    listReviewsByVideo(req.video._id),
+  ]);
+
+  const populatedVideo = videoDoc
+    ? await videoDoc.populate("owner", "username email avatarKey")
+    : null;
+  const video = populatedVideo?.toObject ? populatedVideo.toObject() : populatedVideo;
+
+  const videoWithPlayback = await withPlaybackUrl(video);
+  const reviewCount = reviews.length;
+  const avgRating = reviewCount
+    ? reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviewCount
+    : 0;
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      video: {
+        ...videoWithPlayback,
+        reviewCount,
+        avgRating: Number(avgRating.toFixed(2)),
+      },
+      reviews,
+    },
+  });
+});
+
+const listVideoReviews = catchAsync(async (req, res, next) => {
+  const isOwner = req.user?.id && String(req.video.owner) === String(req.user.id);
+  if (req.video.status !== "public" && !isOwner) {
+    return next(new AppError("Video not found", 404));
+  }
+
+  const reviews = await listReviewsByVideo(req.video._id);
+
+  res.status(200).json({
+    status: "success",
+    results: reviews.length,
+    data: {
+      reviews,
+    },
+  });
+});
+
 const streamVideo = catchAsync(async (req, res, next) => {
   const video = await getVideoByID(req.params.id);
   if (!video) return next(new AppError("Video not found", 404));
@@ -131,4 +192,4 @@ const streamVideo = catchAsync(async (req, res, next) => {
   });
 });
 
-export { listVideos, createVideo, updateVideo, deleteVideo, loadVideo, streamVideo };
+export { listVideos, createVideo, updateVideo, deleteVideo, loadVideo, streamVideo, getVideo, listVideoReviews };
